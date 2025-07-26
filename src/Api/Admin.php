@@ -175,7 +175,7 @@ class Admin
 
     public function fetchUserByEmail(string $email): ?array
     {
-        return $this->fetchUserByFilter('email', $email, '=');
+        return $this->fetchUserByFilter('email', $email, '模糊');
     }
 
     public function fetchUserById($id): ?array
@@ -188,7 +188,7 @@ class Admin
         return $this->fetchUserByFilter('token', $token, '=');
     }
 
-    private function fetchUserByFilter(string $key, $value, string $condition = '='): ?array
+    public function fetchUserByFilter(string $key, $value, string $condition = '='): ?array
     {
         if (empty($this->nodeId)) {
             throw new HttpException('Node ID is required for admin operations');
