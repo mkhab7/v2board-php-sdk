@@ -97,7 +97,9 @@ $sdk->logout();
 
 ## Authentication Caching
 
-The SDK supports caching authentication tokens to avoid repeated login requests:
+The SDK supports caching authentication tokens to avoid repeated login requests. This is especially useful for applications that need to maintain authentication state across multiple requests.
+
+### Basic Caching
 
 ```php
 // Enable caching (optional)
@@ -109,7 +111,16 @@ $sdk->auth()->setCacheTtl(1800); // 30 minutes
 // Set custom cache file location
 $sdk->auth()->setCacheFile('/path/to/custom/cache.json');
 
-// Use external cache driver (e.g., Laravel Cache)
+// With caching enabled, subsequent login() calls will use cached data
+// if it hasn't expired, avoiding unnecessary API requests
+```
+
+### External Cache Drivers
+
+You can use external cache systems like Laravel Cache, Redis, or Memcached:
+
+```php
+// Using Laravel Cache
 $sdk->auth()->setCacheDriver(function($action, $key, $value = null, $ttl = null) {
     if ($action === 'get') {
         return cache()->get($key);
@@ -120,8 +131,71 @@ $sdk->auth()->setCacheDriver(function($action, $key, $value = null, $ttl = null)
     }
 });
 
-// With caching enabled, subsequent login() calls will use cached data
-// if it hasn't expired, avoiding unnecessary API requests
+// Using Redis directly
+$sdk->auth()->setCacheDriver(function($action, $key, $value = null, $ttl = null) {
+    $redis = new Redis();
+    $redis->connect('127.0.0.1', 6379);
+    
+    if ($action === 'get') {
+        return json_decode($redis->get($key), true);
+    } elseif ($action === 'put') {
+        return $redis->setex($key, $ttl, json_encode($value));
+    } elseif ($action === 'forget') {
+        return $redis->del($key);
+    }
+});
+
+// Using Memcached
+$sdk->auth()->setCacheDriver(function($action, $key, $value = null, $ttl = null) {
+    $memcached = new Memcached();
+    $memcached->addServer('localhost', 11211);
+    
+    if ($action === 'get') {
+        return json_decode($memcached->get($key), true);
+    } elseif ($action === 'put') {
+        return $memcached->set($key, json_encode($value), $ttl);
+    } elseif ($action === 'forget') {
+        return $memcached->delete($key);
+    }
+});
+```
+
+### Cache Configuration Options
+
+| Method | Description | Default |
+|--------|-------------|---------|
+| `setCacheEnabled(bool)` | Enable/disable caching | `false` |
+| `setCacheTtl(int)` | Set cache TTL in seconds | `3600` (1 hour) |
+| `setCacheFile(string)` | Set custom cache file path | `src/Auth/.auth_cache.json` |
+| `setCacheDriver(callable)` | Set external cache driver | `null` |
+
+### Cache Behavior
+
+- **File-based caching**: Data is stored in JSON format with timestamp
+- **TTL expiration**: Cache is automatically invalidated after TTL expires
+- **Automatic cleanup**: Expired cache files are automatically removed
+- **Cache key**: Uses `v2board-auth-data` as the default cache key
+- **Stored data**: Token, auth data, admin status, and user data
+
+### Example: Laravel Integration
+
+```php
+// In your Laravel application
+$sdk = new V2BoardSDK('https://your-v2board.com');
+
+// Configure caching with Laravel's cache system
+$sdk->auth()->setCacheEnabled(true);
+$sdk->auth()->setCacheTtl(now()->addMinutes(30)->diffInSeconds());
+$sdk->auth()->setCacheDriver(function($action, $key, $value = null, $ttl = null) {
+    return cache()->remember(
+        key: "v2board-auth.{$key}",
+        ttl: now()->addSeconds($ttl),
+        callback: fn() => $value
+    );
+});
+
+// Login (will be cached for 30 minutes)
+$sdk->login('user@example.com', 'password');
 ```
 
 ## User Information
