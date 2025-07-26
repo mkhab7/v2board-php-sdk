@@ -95,6 +95,35 @@ $version = $sdk->getApiVersion();
 $sdk->logout();
 ```
 
+## Authentication Caching
+
+The SDK supports caching authentication tokens to avoid repeated login requests:
+
+```php
+// Enable caching (optional)
+$sdk->auth()->setCacheEnabled(true);
+
+// Set cache TTL in seconds (default: 3600 = 1 hour)
+$sdk->auth()->setCacheTtl(1800); // 30 minutes
+
+// Set custom cache file location
+$sdk->auth()->setCacheFile('/path/to/custom/cache.json');
+
+// Use external cache driver (e.g., Laravel Cache)
+$sdk->auth()->setCacheDriver(function($action, $key, $value = null, $ttl = null) {
+    if ($action === 'get') {
+        return cache()->get($key);
+    } elseif ($action === 'put') {
+        return cache()->put($key, $value, $ttl);
+    } elseif ($action === 'forget') {
+        return cache()->forget($key);
+    }
+});
+
+// With caching enabled, subsequent login() calls will use cached data
+// if it hasn't expired, avoiding unnecessary API requests
+```
+
 ## User Information
 
 ```php

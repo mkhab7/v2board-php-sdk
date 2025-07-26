@@ -110,4 +110,47 @@ test('sdk can be initialized with custom api version', function () {
     ]);
     
     expect($sdk->getApiVersion())->toBe('v2');
+});
+
+test('sdk auth has cache methods', function () {
+    $sdk = new V2BoardSDK();
+    
+    expect(method_exists($sdk->auth(), 'setCacheEnabled'))->toBeTrue();
+    expect(method_exists($sdk->auth(), 'isCacheEnabled'))->toBeTrue();
+    expect(method_exists($sdk->auth(), 'setCacheTtl'))->toBeTrue();
+    expect(method_exists($sdk->auth(), 'getCacheTtl'))->toBeTrue();
+    expect(method_exists($sdk->auth(), 'setCacheFile'))->toBeTrue();
+    expect(method_exists($sdk->auth(), 'getCacheFile'))->toBeTrue();
+    expect(method_exists($sdk->auth(), 'setCacheDriver'))->toBeTrue();
+});
+
+test('sdk can enable cache through auth', function () {
+    $sdk = new V2BoardSDK();
+    
+    $sdk->auth()->setCacheEnabled(true);
+    expect($sdk->auth()->isCacheEnabled())->toBeTrue();
+});
+
+test('sdk can set cache TTL through auth', function () {
+    $sdk = new V2BoardSDK();
+    
+    $sdk->auth()->setCacheTtl(1800);
+    expect($sdk->auth()->getCacheTtl())->toBe(1800);
+});
+
+test('sdk can set cache file through auth', function () {
+    $sdk = new V2BoardSDK();
+    
+    $customPath = '/tmp/custom_cache.json';
+    $sdk->auth()->setCacheFile($customPath);
+    expect($sdk->auth()->getCacheFile())->toBe($customPath);
+});
+
+test('sdk can set cache driver through auth', function () {
+    $sdk = new V2BoardSDK();
+    
+    $driver = function() { return 'test'; };
+    $sdk->auth()->setCacheDriver($driver);
+    
+    expect($sdk->auth())->toHaveProperty('cacheDriver');
 }); 

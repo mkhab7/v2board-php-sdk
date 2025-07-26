@@ -9,6 +9,25 @@ $sdk = new V2BoardSDK('https://sr1.x-upload.org', [
     'api_version' => 'v1' // You can change this to 'v2', 'v3', etc.
 ]);
 
+// Enable authentication cache (optional)
+$sdk->auth()->setCacheEnabled(true);
+// Optionally set a custom cache file:
+// $sdk->auth()->setCacheFile(__DIR__ . '/my_auth_cache.json');
+
+// Set cache TTL (time to live) in seconds (default: 3600 = 1 hour)
+$sdk->auth()->setCacheTtl(1800); // 30 minutes
+
+// Example: Using Laravel cache driver (if available)
+// $sdk->auth()->setCacheDriver(function($action, $key, $value = null, $ttl = null) {
+//     if ($action === 'get') {
+//         return cache()->get($key);
+//     } elseif ($action === 'put') {
+//         return cache()->put($key, $value, $ttl);
+//     } elseif ($action === 'forget') {
+//         return cache()->forget($key);
+//     }
+// });
+
 try {
     // Login with your credentials
     $response = $sdk->login('matinahmadi@admin.user', 'ddbe0243463282ae329270466010664c');
