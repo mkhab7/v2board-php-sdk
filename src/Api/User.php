@@ -20,7 +20,7 @@ class User
     public function getInfo(): array
     {
         try {
-            $response = $this->httpClient->get('/api/v1/user/info');
+            $response = $this->httpClient->get('/user/info');
             $data = json_decode($response->getBody()->getContents(), true);
             
             if ($response->getStatusCode() !== 200) {

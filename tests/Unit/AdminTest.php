@@ -33,6 +33,14 @@ test('admin has required methods', function () {
     expect(method_exists($this->admin, 'getCommissionLastMonthPayout'))->toBeTrue();
 });
 
+test('admin has user fetch helper methods', function () {
+    $httpClient = Mockery::mock(\Mkhab7\V2Board\SDK\Contracts\HttpClientInterface::class);
+    $admin = new \Mkhab7\V2Board\SDK\Api\Admin($httpClient);
+    expect(method_exists($admin, 'fetchUserByEmail'))->toBeTrue();
+    expect(method_exists($admin, 'fetchUserById'))->toBeTrue();
+    expect(method_exists($admin, 'fetchUserByToken'))->toBeTrue();
+});
+
 test('setNodeId returns self for chaining', function () {
     $result = $this->admin->setNodeId('test-node');
     

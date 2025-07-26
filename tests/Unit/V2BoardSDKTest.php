@@ -75,4 +75,39 @@ test('getAuthData returns correct auth data', function () {
     $sdk->auth()->setAuthData($authData);
     
     expect($sdk->getAuthData())->toBe($authData);
+});
+
+test('sdk has all required API methods', function () {
+    $sdk = new V2BoardSDK();
+    
+    expect(method_exists($sdk, 'stats'))->toBeTrue();
+    expect(method_exists($sdk, 'user'))->toBeTrue();
+    expect(method_exists($sdk, 'admin'))->toBeTrue();
+    expect(method_exists($sdk, 'plan'))->toBeTrue();
+    expect(method_exists($sdk, 'serverGroup'))->toBeTrue();
+    expect(method_exists($sdk, 'setNodeId'))->toBeTrue();
+    expect(method_exists($sdk, 'generateUser'))->toBeTrue();
+    expect(method_exists($sdk, 'updateUser'))->toBeTrue();
+    expect(method_exists($sdk, 'setApiVersion'))->toBeTrue();
+    expect(method_exists($sdk, 'getApiVersion'))->toBeTrue();
+});
+
+test('sdk can set and get api version', function () {
+    $sdk = new V2BoardSDK();
+    
+    expect($sdk->getApiVersion())->toBe('v1');
+    
+    $sdk->setApiVersion('v2');
+    expect($sdk->getApiVersion())->toBe('v2');
+    
+    $sdk->setApiVersion('v3');
+    expect($sdk->getApiVersion())->toBe('v3');
+});
+
+test('sdk can be initialized with custom api version', function () {
+    $sdk = new V2BoardSDK('https://example.com', [
+        'api_version' => 'v2'
+    ]);
+    
+    expect($sdk->getApiVersion())->toBe('v2');
 }); 

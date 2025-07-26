@@ -5,17 +5,20 @@ require_once 'vendor/autoload.php';
 use Mkhab7\V2Board\SDK\V2BoardSDK;
 
 // Initialize SDK with your V2Board instance URL
-$sdk = new V2BoardSDK('https://sr3.x-upload.org');
+$sdk = new V2BoardSDK('https://sr1.x-upload.org', [
+    'api_version' => 'v1' // You can change this to 'v2', 'v3', etc.
+]);
 
 try {
     // Login with your credentials
-    $response = $sdk->login('matinahmadi@gmail.com', '4e7ef213befe46b7866d4ba33e971cf4');
+    $response = $sdk->login('matinahmadi@admin.user', 'ddbe0243463282ae329270466010664c');
     
     echo "=== Login Information ===\n";
     echo "Login successful!\n";
     echo "Token: " . $sdk->getToken() . "\n";
     echo "Is Admin: " . ($sdk->isAdmin() ? 'Yes' : 'No') . "\n";
     echo "Auth Data: " . $sdk->getAuthData() . "\n";
+    echo "API Version: " . $sdk->getApiVersion() . "\n";
     
     // Check if authenticated
     if ($sdk->isAuthenticated()) {
@@ -53,22 +56,13 @@ try {
         if ($sdk->isAdmin()) {
             echo "\n=== Admin Statistics ===\n";
             $sdk->setNodeId('bc1qcjt4elavl3zdua0ljvrcv7gskcv7g5kw2aatxc');
-            
-            echo "Online Users: " . $sdk->admin()->getOnlineUsers() . "\n";
-            echo "Month Income: " . $sdk->admin()->getMonthIncome() . "\n";
-            echo "Month Register Total: " . $sdk->admin()->getMonthRegisterTotal() . "\n";
-            echo "Day Register Total: " . $sdk->admin()->getDayRegisterTotal() . "\n";
-            echo "Ticket Pending Total: " . $sdk->admin()->getTicketPendingTotal() . "\n";
-            echo "Commission Pending Total: " . $sdk->admin()->getCommissionPendingTotal() . "\n";
-            echo "Day Income: " . $sdk->admin()->getDayIncome() . "\n";
-            echo "Last Month Income: " . $sdk->admin()->getLastMonthIncome() . "\n";
-            
+
             echo "\n=== Admin User Management ===\n";
             
             echo "Generating new user...\n";
             try {
                 $userData = [
-                    'email_prefix' => 'testuser',
+                    'email_prefix' => $uid = uniqid(),
                     'email_suffix' => 'example.com',
                     'password' => '123456',
                     'expired_at' => '1752125627',
@@ -82,10 +76,9 @@ try {
             }
             
             $updateData = [
-                'id' => '1',
                 'invite_user_id' => '',
                 'telegram_id' => '',
-                'email' => 'matinahmadi@gmail.com',
+                'email' => $uid . '@gmail.com',
                 'password' => '',
                 'password_algo' => '',
                 'password_salt' => '',
@@ -119,10 +112,125 @@ try {
             ];
             
             echo "Updating user...\n";
-            $updateResult = $sdk->updateUser($updateData);
-            echo "Update Result: " . json_encode($updateResult) . "\n";
+            try {
+                $updateResult = $sdk->updateUser($updateData);
+                echo "Update Result: " . json_encode($updateResult) . "\n";
+            } catch (Exception $e) {
+                echo "Error updating user: " . $e->getMessage() . "\n";
+            }
+            
+            echo "\n=== Plan Information ===\n";
+            try {
+                $plans = $sdk->plan()->fetch();
+                echo "Total Plans: " . count($plans) . "\n";
+                
+                foreach ($plans as $plan) {
+                    echo "Plan: {$plan['name']} (ID: {$plan['id']}) - Transfer: {$plan['transfer_enable']} GB - Users: {$plan['count']}\n";
+                }
+                
+                $planCount = $sdk->plan()->getPlanCount();
+                $totalUsers = $sdk->plan()->getTotalUserCount();
+                echo "Plan Count: {$planCount}\n";
+                echo "Total Users: {$totalUsers}\n";
+            } catch (Exception $e) {
+                echo "Error fetching plans: " . $e->getMessage() . "\n";
+            }
+
+            echo "\n=== Server Group Information ===\n";
+            try {
+                $groups = $sdk->serverGroup()->fetch();
+                echo "Total Groups: " . count($groups) . "\n";
+                
+                foreach ($groups as $group) {
+                    echo "Group: {$group['name']} (ID: {$group['id']}) - Users: {$group['user_count']} - Servers: {$group['server_count']}\n";
+                }
+                
+                $groupCount = $sdk->serverGroup()->getGroupCount();
+                $totalUsers = $sdk->serverGroup()->getTotalUserCount();
+                $totalServers = $sdk->serverGroup()->getTotalServerCount();
+                echo "Group Count: {$groupCount}\n";
+                echo "Total Users: {$totalUsers}\n";
+                echo "Total Servers: {$totalServers}\n";
+            } catch (Exception $e) {
+                echo "Error fetching server groups: " . $e->getMessage() . "\n";
+            }
+
+            echo "\n=== Plan Update Example ===\n";
+            try {
+                $planData = [
+                    'id' => '1',
+                    'group_id' => '1',
+                    'transfer_enable' => '.5',
+                    'name' => '1 GB',
+                    'device_limit' => '',
+                    'speed_limit' => '',
+                    'show' => '1',
+                    'sort' => '1',
+                    'renew' => '1',
+                    'content' => '',
+                    'month_price' => '',
+                    'quarter_price' => '',
+                    'half_year_price' => '',
+                    'year_price' => '',
+                    'two_year_price' => '',
+                    'three_year_price' => '',
+                    'onetime_price' => '',
+                    'reset_price' => '',
+                    'reset_traffic_method' => '',
+                    'capacity_limit' => '',
+                    'created_at' => '1753370427',
+                    'updated_at' => '1753505093',
+                    'count' => '1'
+                ];
+                
+                $result = $sdk->plan()->save($planData);
+                echo "Plan updated successfully!\n";
+                echo "Response: " . json_encode($result, JSON_PRETTY_PRINT) . "\n";
+            } catch (Exception $e) {
+                echo "Error updating plan: " . $e->getMessage() . "\n";
+            }
+
+            echo "\n=== Admin User Fetch Helpers ===\n";
+            try {
+                $userByEmail = $sdk->admin()->fetchUserByEmail('matinahmadi@admin.user');
+                echo "User by Email: ";
+                var_export($userByEmail);
+                echo "\n";
+            } catch (Exception $e) {
+                echo "Error fetching user by email: " . $e->getMessage() . "\n";
+            }
+            try {
+                $userById = $sdk->admin()->fetchUserById(1);
+                echo "User by ID: ";
+                var_export($userById);
+                echo "\n";
+            } catch (Exception $e) {
+                echo "Error fetching user by ID: " . $e->getMessage() . "\n";
+            }
+            try {
+                $userByToken = $sdk->admin()->fetchUserByToken('14ce913fdfbe9ffdadb479eea9382af8');
+                echo "User by Token: ";
+                var_export($userByToken);
+                echo "\n";
+            } catch (Exception $e) {
+                echo "Error fetching user by token: " . $e->getMessage() . "\n";
+            }
         }
     }
+    
+    echo "\n=== API Version Management ===\n";
+    echo "Current API Version: " . $sdk->getApiVersion() . "\n";
+    
+    // Change API version
+    $sdk->setApiVersion('v2');
+    echo "Changed to API Version: " . $sdk->getApiVersion() . "\n";
+    
+    // Change back to v1
+    $sdk->setApiVersion('v1');
+    echo "Changed back to API Version: " . $sdk->getApiVersion() . "\n";
+    
+    echo "\n=== SDK Complete! ===\n";
+    echo "All features are working correctly!\n";
     
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";

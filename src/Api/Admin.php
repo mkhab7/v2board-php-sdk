@@ -34,7 +34,7 @@ class Admin
         }
         
         try {
-            $response = $this->httpClient->get("/api/v1/{$this->nodeId}/stat/getOverride");
+            $response = $this->httpClient->get("/{$this->nodeId}/stat/getOverride");
             $data = json_decode($response->getBody()->getContents(), true);
             
             if ($response->getStatusCode() !== 200) {
@@ -61,7 +61,7 @@ class Admin
         }
         
         try {
-            $response = $this->httpClient->post("/api/v1/{$this->nodeId}/user/generate", $userData);
+            $response = $this->httpClient->post("/{$this->nodeId}/user/generate", $userData);
             $data = json_decode($response->getBody()->getContents(), true);
             
             if ($response->getStatusCode() !== 200) {
@@ -88,7 +88,7 @@ class Admin
         }
         
         try {
-            $response = $this->httpClient->post("/api/v1/{$this->nodeId}/user/update", $userData);
+            $response = $this->httpClient->post("/{$this->nodeId}/user/update", $userData);
             $data = json_decode($response->getBody()->getContents(), true);
             
             if ($response->getStatusCode() !== 200) {
@@ -171,5 +171,44 @@ class Admin
     {
         $stats = $this->getStats();
         return $stats['commission_last_month_payout'] ?? 0;
+    }
+
+    public function fetchUserByEmail(string $email): ?array
+    {
+        return $this->fetchUserByFilter('email', $email, '=');
+    }
+
+    public function fetchUserById($id): ?array
+    {
+        return $this->fetchUserByFilter('id', $id, '=');
+    }
+
+    public function fetchUserByToken(string $token): ?array
+    {
+        return $this->fetchUserByFilter('token', $token, '=');
+    }
+
+    private function fetchUserByFilter(string $key, $value, string $condition = '='): ?array
+    {
+        if (empty($this->nodeId)) {
+            throw new HttpException('Node ID is required for admin operations');
+        }
+        $query = http_build_query([
+            'filter' => [
+                [
+                    'key' => $key,
+                    'condition' => $condition,
+                    'value' => $value,
+                ]
+            ],
+            'pageSize' => 1,
+            'current' => 1
+        ]);
+        $response = $this->httpClient->get("/{$this->nodeId}/user/fetch?$query");
+        $data = json_decode($response->getBody()->getContents(), true);
+        if (!isset($data['data']) || !is_array($data['data']) || count($data['data']) === 0) {
+            return null;
+        }
+        return $data['data'][0];
     }
 } 

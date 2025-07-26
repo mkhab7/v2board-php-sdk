@@ -23,10 +23,10 @@ class Authentication implements AuthInterface
     public function login(string $email, string $password): array
     {
         try {
-            $response = $this->httpClient->post('/api/v1/passport/auth/login', [
-                'email' => $email,
-                'password' => $password
-            ]);
+                    $response = $this->httpClient->post('/passport/auth/login', [
+            'email' => $email,
+            'password' => $password
+        ]);
             
             $data = json_decode($response->getBody()->getContents(), true);
             

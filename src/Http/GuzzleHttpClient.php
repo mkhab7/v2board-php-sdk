@@ -44,19 +44,42 @@ class GuzzleHttpClient implements HttpClientInterface
     
     public function get(string $uri, array $headers = []): ResponseInterface
     {
+        $fullUri = $this->buildFullUri($uri);
         $headers = $this->addAuthHeader($headers);
-        $request = new Request('GET', $uri, $headers);
+        $request = new Request('GET', $fullUri, $headers);
         return $this->send($request);
     }
     
     public function post(string $uri, array $data = [], array $headers = []): ResponseInterface
     {
+        $fullUri = $this->buildFullUri($uri);
         $body = http_build_query($data);
         $headers['Content-Type'] = 'application/x-www-form-urlencoded';
         $headers = $this->addAuthHeader($headers);
         
-        $request = new Request('POST', $uri, $headers, $body);
+        $request = new Request('POST', $fullUri, $headers, $body);
         return $this->send($request);
+    }
+    
+    private function buildFullUri(string $uri): string
+    {
+        // If URI already starts with http, return as is
+        if (str_starts_with($uri, 'http')) {
+            return $uri;
+        }
+        
+        // If URI starts with /api/, use as is
+        if (str_starts_with($uri, '/api/')) {
+            return $this->config->getBaseUrl() . $uri;
+        }
+        
+        // If URI starts with /monitor/, use as is (for stats)
+        if (str_starts_with($uri, '/monitor/')) {
+            return $this->config->getBaseUrl() . $uri;
+        }
+        
+        // Otherwise, prepend API base path
+        return $this->config->getFullApiUrl($uri);
     }
     
     public function getClient(): GuzzleClient

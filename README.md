@@ -1,35 +1,17 @@
 # V2Board SDK
 
-A modern PHP SDK for V2Board API with clean architecture and SOLID principles.
+A powerful PHP SDK for V2Board API that makes it easy to interact with your V2Board instance.
 
 ## Features
 
-- 🔐 Authentication with token management
-- 🌐 HTTP client with Guzzle integration
-- 🛡️ Proper error handling and exceptions
-- 📦 PSR-4 autoloading
-- 🧪 SOLID principles and design patterns
-- ⚡ Easy to use and extend
-- 🧪 Pest testing framework
-- 👥 User management (generate, update)
-- 📊 System statistics
-- 👤 User information
-
-## Installation
-
-```bash
-composer require mkhab7/v2board-sdk
-```
-
-Or add to your `composer.json`:
-
-```json
-{
-    "require": {
-        "mkhab7/v2board-sdk": "^1.0"
-    }
-}
-```
+- 🔐 **Authentication** - Login, logout, and token management
+- 👤 **User Management** - Get user info, generate users, update users
+- 📊 **System Monitoring** - Real-time system statistics and performance data
+- 📋 **Plan Management** - Fetch, create, and update subscription plans
+- 🖥️ **Server Groups** - Manage server groups and their configurations
+- 👥 **Admin Tools** - Advanced user search by email, ID, or token
+- 🌐 **HTTP Client** - Built-in HTTP client for custom API calls
+- 🧪 **Testing** - Comprehensive test suite with Pest framework
 
 ## Quick Start
 
@@ -40,39 +22,28 @@ require_once 'vendor/autoload.php';
 
 use Mkhab7\V2Board\SDK\V2BoardSDK;
 
-// Initialize SDK
-$sdk = new V2BoardSDK('https://your-v2board-instance.com');
+// Initialize SDK with API version
+$sdk = new V2BoardSDK('https://your-v2board-instance.com', [
+    'api_version' => 'v1' // Change to 'v2', 'v3', etc. as needed
+]);
 
 // Login
 try {
     $response = $sdk->login('your-email@example.com', 'your-password');
-    echo "Token: " . $sdk->getToken();
+    echo "Login successful! Token: " . $sdk->getToken();
+    echo "API Version: " . $sdk->getApiVersion();
 } catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
+    echo "Login failed: " . $e->getMessage();
 }
 ```
 
-## Configuration
+## Authentication
 
 ```php
-$sdk = new V2BoardSDK('https://your-v2board-instance.com', [
-    'timeout' => 30,
-    'verify_ssl' => true,
-    'headers' => [
-        'User-Agent' => 'MyApp/1.0'
-    ]
-]);
-```
-
-## API Reference
-
-### Authentication
-
-```php
-// Login
+// Login with credentials
 $response = $sdk->login($email, $password);
 
-// Check authentication status
+// Check if user is logged in
 if ($sdk->isAuthenticated()) {
     echo "User is logged in";
 }
@@ -80,19 +51,25 @@ if ($sdk->isAuthenticated()) {
 // Get current token
 $token = $sdk->getToken();
 
-// Check if admin
+// Check if user is admin
 if ($sdk->isAdmin()) {
-    echo "User is admin";
+    echo "User has admin privileges";
 }
 
-// Get auth data (JWT)
+// Get JWT auth data
 $authData = $sdk->getAuthData();
+
+// Change API version
+$sdk->setApiVersion('v2');
+
+// Get current API version
+$version = $sdk->getApiVersion();
 
 // Logout
 $sdk->logout();
 ```
 
-### User Information
+## User Information
 
 ```php
 // Get user email
@@ -101,38 +78,44 @@ $email = $sdk->user()->getEmail();
 // Get transfer limit in GB
 $transferGB = $sdk->user()->getTransferEnableGB();
 
-// Get balance
+// Get account balance
 $balance = $sdk->user()->getBalance();
 
-// Get plan ID
+// Get current plan ID
 $planId = $sdk->user()->getPlanId();
 
-// Check if banned
+// Check if account is banned
 if ($sdk->user()->isBanned()) {
-    echo "User is banned";
+    echo "Account is suspended";
 }
 
-// Get UUID
+// Get user UUID
 $uuid = $sdk->user()->getUuid();
+
+// Get avatar URL
+$avatarUrl = $sdk->user()->getAvatarUrl();
 ```
 
-### System Statistics
+## System Statistics
 
 ```php
 // Get system status
 $status = $sdk->stats()->getStatus();
 
-// Get processes count
+// Get number of running processes
 $processes = $sdk->stats()->getProcesses();
 
-// Get failed jobs
+// Get failed job count
 $failedJobs = $sdk->stats()->getFailedJobs();
 
-// Get recent jobs
+// Get recent job count
 $recentJobs = $sdk->stats()->getRecentJobs();
+
+// Get jobs per minute
+$jobsPerMinute = $sdk->stats()->getJobsPerMinute();
 ```
 
-### Admin Operations
+## Admin Operations
 
 ```php
 // Set node ID for admin operations
@@ -143,9 +126,18 @@ $onlineUsers = $sdk->admin()->getOnlineUsers();
 $monthIncome = $sdk->admin()->getMonthIncome();
 $monthRegisterTotal = $sdk->admin()->getMonthRegisterTotal();
 
+// Search users by email
+$user = $sdk->admin()->fetchUserByEmail('user@example.com');
+
+// Search users by ID
+$user = $sdk->admin()->fetchUserById(10);
+
+// Search users by token
+$user = $sdk->admin()->fetchUserByToken('user_token_here');
+
 // Generate new user
 $userData = [
-    'email_prefix' => 'test',
+    'email_prefix' => 'newuser',
     'email_suffix' => 'gmail.com',
     'password' => '123456',
     'expired_at' => '1752125627',
@@ -153,101 +145,119 @@ $userData = [
 ];
 $result = $sdk->generateUser($userData);
 
-// Update user
+// Update existing user
 $updateData = [
     'id' => '1',
     'email' => 'user@example.com',
     'balance' => '100',
     'plan_id' => '3',
-    // ... other fields
+    'transfer_enable' => '1073741824',
+    'banned' => '0'
 ];
 $result = $sdk->updateUser($updateData);
 ```
 
-### HTTP Client
+## Plan Management
 
 ```php
-// Make GET request
-$response = $sdk->http()->get('/api/v1/user/profile');
+// Get all plans
+$plans = $sdk->plan()->fetch();
 
-// Make POST request
-$response = $sdk->http()->post('/api/v1/user/update', [
-    'name' => 'John Doe'
+// Find plan by ID
+$plan = $sdk->plan()->getPlanById(1);
+
+// Find plan by name
+$plan = $sdk->plan()->getPlanByName('25 GB');
+
+// Get plans for specific group
+$plans = $sdk->plan()->getPlansByGroupId(1);
+
+// Get only visible plans
+$visiblePlans = $sdk->plan()->getVisiblePlans();
+
+// Get total plan count
+$planCount = $sdk->plan()->getPlanCount();
+
+// Get total users across all plans
+$totalUsers = $sdk->plan()->getTotalUserCount();
+
+// Create or update plan
+$planData = [
+    'id' => '1',
+    'group_id' => '1',
+    'transfer_enable' => '.5',
+    'name' => '1 GB',
+    'show' => '1',
+    'sort' => '1',
+    'renew' => '1'
+];
+$result = $sdk->plan()->save($planData);
+```
+
+## Server Group Management
+
+```php
+// Get all server groups
+$groups = $sdk->serverGroup()->fetch();
+
+// Find group by ID
+$group = $sdk->serverGroup()->getGroupById(1);
+
+// Find group by name
+$group = $sdk->serverGroup()->getGroupByName('normal');
+
+// Get total group count
+$groupCount = $sdk->serverGroup()->getGroupCount();
+
+// Get total users across all groups
+$totalUsers = $sdk->serverGroup()->getTotalUserCount();
+
+// Get total servers across all groups
+$totalServers = $sdk->serverGroup()->getTotalServerCount();
+```
+
+## HTTP Client
+
+```php
+// Make custom GET request
+$response = $sdk->http()->get('/api/v1/custom/endpoint');
+
+// Make custom POST request
+$response = $sdk->http()->post('/api/v1/custom/endpoint', [
+    'key' => 'value'
 ]);
 ```
 
-## Architecture
-
-The SDK follows SOLID principles and uses several design patterns:
-
-- **Dependency Injection**: All dependencies are injected through constructors
-- **Interface Segregation**: Separate interfaces for different responsibilities
-- **Single Responsibility**: Each class has a single, well-defined purpose
-- **Strategy Pattern**: HTTP client can be easily swapped
-- **Factory Pattern**: Configuration objects are created with sensible defaults
-
-### Directory Structure
-
-```
-src/
-├── Api/
-│   ├── Admin.php
-│   ├── Stats.php
-│   └── User.php
-├── Auth/
-│   └── Authentication.php
-├── Config/
-│   └── Config.php
-├── Contracts/
-│   ├── AuthInterface.php
-│   └── HttpClientInterface.php
-├── Exceptions/
-│   ├── AuthenticationException.php
-│   ├── HttpException.php
-│   └── V2BoardException.php
-├── Http/
-│   └── GuzzleHttpClient.php
-└── V2BoardSDK.php
-```
-
-## Testing
-
-This SDK uses Pest for testing. To run tests:
-
-```bash
-./vendor/bin/pest
-```
-
-Or run specific test suites:
-
-```bash
-./vendor/bin/pest tests/Unit
-./vendor/bin/pest tests/Feature
-```
-
 ## Error Handling
-
-The SDK provides specific exception classes:
 
 ```php
 try {
     $sdk->login($email, $password);
 } catch (\Mkhab7\V2Board\SDK\Exceptions\AuthenticationException $e) {
     // Handle authentication errors
+    echo "Login failed: " . $e->getMessage();
 } catch (\Mkhab7\V2Board\SDK\Exceptions\HttpException $e) {
     // Handle network errors
+    echo "Network error: " . $e->getMessage();
 } catch (\Mkhab7\V2Board\SDK\Exceptions\V2BoardException $e) {
     // Handle general SDK errors
+    echo "SDK error: " . $e->getMessage();
 }
 ```
 
-## Contributing
+## Installation
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+```bash
+composer require mkhab7/v2board-sdk
+```
+
+## Testing
+
+Run the test suite:
+
+```bash
+./vendor/bin/pest
+```
 
 ## License
 
