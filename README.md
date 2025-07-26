@@ -2,6 +2,32 @@
 
 A powerful PHP SDK for V2Board API that makes it easy to interact with your V2Board instance.
 
+## Installation
+
+### Using Composer
+
+```bash
+composer require mkhab7/v2board-sdk
+```
+
+### Manual Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/mkhab7/v2board-php-sdk.git
+cd v2board-php-sdk
+```
+
+2. Install dependencies:
+```bash
+composer install
+```
+
+3. Include the autoloader:
+```php
+require_once 'vendor/autoload.php';
+```
+
 ## Features
 
 - 🔐 **Authentication** - Login, logout, and token management
@@ -243,32 +269,6 @@ try {
     // Handle general SDK errors
     echo "SDK error: " . $e->getMessage();
 }
-```
-
-## Installation
-
-### Using Composer
-
-```bash
-composer require mkhab7/v2board-sdk
-```
-
-### Manual Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/mkhab7/v2board-php-sdk.git
-cd v2board-php-sdk
-```
-
-2. Install dependencies:
-```bash
-composer install
-```
-
-3. Include the autoloader:
-```php
-require_once 'vendor/autoload.php';
 ```
 
 ## Testing
