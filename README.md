@@ -247,8 +247,28 @@ try {
 
 ## Installation
 
+### Using Composer
+
 ```bash
 composer require mkhab7/v2board-sdk
+```
+
+### Manual Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/mkhab7/v2board-php-sdk.git
+cd v2board-php-sdk
+```
+
+2. Install dependencies:
+```bash
+composer install
+```
+
+3. Include the autoloader:
+```php
+require_once 'vendor/autoload.php';
 ```
 
 ## Testing
